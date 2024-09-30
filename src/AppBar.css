@@ -1,0 +1,32 @@
+.app-bar {
+    background-color: #295F98; /* Color de fondo */
+    border-radius: 8px; /* Bordes redondeados */
+    padding: 20px; /* Padding */
+    position: fixed; /* Fija la AppBar en la parte superior */
+    width: 100%; /* Ocupa todo el ancho */
+    top: 0; /* Posiciona la AppBar en la parte superior */
+    z-index: 1000; /* Asegúrate de que esté por encima de otros elementos */
+  }
+  
+  .app-bar-content {
+    display: flex; /* Utiliza flexbox para alinear el contenido */
+    flex-direction:row; /* Coloca el título y el subtítulo uno debajo del otro */
+    align-items: center; /* Alinea a la izquierda */
+  }
+  
+  .app-bar-title {
+    font-weight: bold; /* Negrita para el título */
+    margin: 0; /* Sin márgenes */
+    font-size: 24px; /* Tamaño de fuente del título */
+    color: white; /* Color del texto */
+  }
+  
+  .app-bar-subtitle {
+    padding-left: 2rem;
+    justify-content: center;
+    font-weight: normal; /* Estilo normal para el subtítulo */
+    margin: 0; /* Sin márgenes */
+    font-size: 16px; /* Tamaño de fuente del subtítulo */
+    color: white; /* Color del texto */
+  }
+  
