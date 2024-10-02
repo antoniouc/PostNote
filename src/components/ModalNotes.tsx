@@ -19,14 +19,16 @@ const NotaDialog: React.FC<NotaDialogProps> = ({ open, onClose, onSave, onDelete
       setTitle(nota.title);
       setContent(nota.content);
     } else {
-      setTitle('');
-      setContent('');
+      setTitle(' ');
+      setContent(' ');
     }
   }, [nota]);
 
   const handleSave = () => {
     onSave(nota?.id || null, title, content);
     onClose();
+    setTitle(' ');
+      setContent(' ');
   };
 
   const handleDelete = () => {
