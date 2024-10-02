@@ -9,10 +9,11 @@ interface DraggableNoteProps {
   content: string;
   backgroundColor: string;
   position: { x: number; y: number };
+  onClick: () => void; 
 }
 
-const DraggableNote: React.FC<DraggableNoteProps> = ({ id, title, content, backgroundColor,position }) => {
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
+const DraggableNote: React.FC<DraggableNoteProps> = ({ id, title, content, backgroundColor,position , onClick}) => {
+  const { attributes, listeners, setNodeRef, transform ,} = useDraggable({
     id,
   });
 
@@ -22,7 +23,7 @@ const DraggableNote: React.FC<DraggableNoteProps> = ({ id, title, content, backg
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} onClick={onClick}>
       <CustomCard title={title} content={content} backgroundColor={backgroundColor} />
     </div>
   );
