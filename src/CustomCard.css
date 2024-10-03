@@ -3,13 +3,24 @@
     margin-left: 10px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    min-width: 200px;
     max-width: 200px;
-    height: 200px;
+    min-height: 200px;
+    max-height: 200px;
     display: flex;
     flex-direction: column;
   
   }
-  
+  .draggable-note:hover{
+   
+    transform: scale(1.5); /* Escalar un poco en hover */
+  }
+  .draggable-note:hover{
+    background-color: #33333300;
+    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.3); /* Más sombra en hover */
+    transform: scale(1.0); /* Escalar un poco en hover */
+    z-index: 0;
+  }
   .custom-card-title {
     font-size: 15px;
     font-weight: bold;
@@ -23,4 +34,39 @@
     text-overflow: ellipsis;
     display: -webkit-box;
   }
+
+  .draggable-note {
+    position: relative; /* Necesario para posicionar los iconos */
+    cursor: pointer;
+    transition: transform 0.3s ease;
+  
+  }
+  
+  .draggable-note:hover {
+    transform: scale(1.05); /* Sobresaltar la nota */
+    
+  }
+  
+  .icons-container {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: none; /* Ocultar los iconos inicialmente */
+  }
+  
+  .draggable-note:hover .icons-container {
+    display: flex; /* Mostrar los iconos al hacer hover sobre la nota */
+    gap: 8px;
+  }
+  
+  .icon {
+    cursor: pointer;
+    color: #888;
+    transition: color 0.2s;
+  }
+  
+  .icon:hover {
+    color: #f00; /* Cambiar color al hacer hover sobre los iconos */
+  }
+  
   

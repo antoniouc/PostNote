@@ -6,46 +6,47 @@ import { useState } from 'react';
 import { closestCenter, DndContext } from '@dnd-kit/core';
 import DraggableNote from '../components/DraggableNote';
 import NotaDialog from '../components/ModalNotes';
+import ConfirmDialog from '../components/ConfirmDialog'; // Importar el nuevo modal de confirmación
 
-// Definimos la interfaz para las notas
 interface Nota {
   id: string;
   title: string;
   content: string;
   background: string;
-
 }
 
-// Interfaz para definir las posiciones de las notas
 interface Position {
   x: number;
   y: number;
 }
 
 export default function PanelNotas() {
-  // Definimos el tipo de notas usando la interfaz Nota
   const [notas, setNotas] = useState<Nota[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
-  // Cambiamos el tipo de positions para que acepte un objeto con claves string y valores de tipo Position
   const [positions, setPositions] = useState<{ [key: string]: Position }>({});
   const [selectedNota, setSelectedNota] = useState<Nota | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false); // Estado para manejar el modal de confirmación
+  const [notaToDelete, setNotaToDelete] = useState<Nota | null>(null); // Estado para saber qué nota eliminar
 
   const handleDragEnd = (event: any) => {
-    const { active, over } = event;
-
-    if (active.id !== over.id) {
-      const { id } = active;
-      const delta = { x: event.delta.x, y: event.delta.y };
-
-      setPositions((prevPositions) => ({
-        ...prevPositions,
-        [id]: {
-          x: (prevPositions[id]?.x || 0) + delta.x,
-          y: (prevPositions[id]?.y || 0) + delta.y,
-        },
-      }));
+    const { active, delta } = event;
+  
+    if (!active || !positions[active.id]) {
+      return;
     }
+  
+    const id = active.id;
+  
+    // Actualiza la posición de la nota en el estado
+    setPositions((prevPositions) => ({
+      ...prevPositions,
+      [id]: {
+        x: prevPositions[id].x + delta.x,
+        y: prevPositions[id].y + delta.y,
+      },
+    }));
   };
+  
 
   const generatePastelColor = () => {
     const r = Math.floor((Math.random() * 127) + 127);
@@ -53,33 +54,23 @@ export default function PanelNotas() {
     const b = Math.floor((Math.random() * 127) + 127);
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
   };
-  // Función para agregar una nueva nota
-  const agregarNota =  (id: string | null, title: string, content: string) => {
 
+  const agregarNota = (id: string | null, title: string, content: string) => {
     if (id) {
-      // Editar nota existente
       setNotas((prevNotas) =>
-        prevNotas.map((nota) =>
-          nota.id === id ? { ...nota, title, content } : nota
-        )
+        prevNotas.map((nota) => (nota.id === id ? { ...nota, title, content } : nota))
       );
     } else {
-    const nuevaNota: Nota = { id: `${notas.length}`, title, content, background: generatePastelColor() };
-    setPositions((prev) => ({
-      ...prev,
-      [nuevaNota.id]: { x: 0, y: 0 }, // Posición inicial en (0, 0)
-    }));
-    setNotas([...notas, nuevaNota]);
-    // Actualiza el estado agregando la nueva nota
-  }
+      const nuevaNota: Nota = { id: `${notas.length}`, title, content, background: generatePastelColor() };
+      setPositions((prev) => ({
+        ...prev,
+        [nuevaNota.id]: { x: 0, y: 0 },
+      }));
+      setNotas([...notas, nuevaNota]);
+    }
   };
 
-  const eliminarNota = (id: string) => {
-    setNotas(notas.filter((nota) => nota.id !== id));
-  };
-  // Función para seleccionar una nota
   const handleOpenDialog = (nota?: Nota) => {
-    
     setSelectedNota(nota || null);
     setDialogOpen(true);
   };
@@ -88,14 +79,32 @@ export default function PanelNotas() {
     setDialogOpen(false);
     setSelectedNota(null);
   };
+
+  const handleOpenConfirm = (nota: Nota) => {
+    setNotaToDelete(nota);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (notaToDelete) {
+      setNotas(notas.filter((nota) => nota.id !== notaToDelete.id));
+    }
+    setConfirmOpen(false);
+    setNotaToDelete(null);
+  };
+
+  const handleCancelDelete = () => {
+    setConfirmOpen(false);
+    setNotaToDelete(null);
+  };
+
   return (
     <React.Fragment>
       <CssBaseline />
-
       <Box
         sx={{
           bgcolor: '#cfe8fc',
-          height: '100vh',
+          minHeight: '100vh',
           width: '100%',
           margin: '0',
           padding: '8% 20px 20px 20px',
@@ -103,7 +112,6 @@ export default function PanelNotas() {
           flexDirection: 'column',
         }}
       >
-        {/* Botón para agregar una nueva nota */}
         <Button
           variant="contained"
           color="primary"
@@ -113,18 +121,17 @@ export default function PanelNotas() {
           Agregar Nota
         </Button>
 
-        {/* Contenedor con scroll para las notas */}
-        <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <DndContext onDragEnd={handleDragEnd}>
           <Box
             sx={{
+              position: 'fixed',
               display: 'flex',
               flexWrap: 'wrap',
               gap: '20px',
-              overflow: 'auto',
+              overflow: 'initial',
               maxHeight: '70vh',
             }}
           >
-            {/* Mostrar un mensaje si no hay notas */}
             {notas.length === 0 ? (
               <Typography variant="h6" sx={{ color: 'text.secondary' }}>
                 No hay notas disponibles. Agrega una nueva nota.
@@ -137,21 +144,38 @@ export default function PanelNotas() {
                   title={nota.title}
                   content={nota.content}
                   backgroundColor={nota.background}
-                  position={positions[nota.id] || { x:0 , y: 0 }}
-                  onClick={() => handleOpenDialog(nota)} // Establecer posición por defecto si no existe
+                  position={positions[nota.id] || { x: 0, y: 0 }}
+                  onClick={() => handleOpenDialog(nota)}
+                  onDelete={() => handleOpenConfirm(nota)} // Abre la confirmación para eliminar
+  onEdit={() => handleOpenDialog(nota)} // Abre el diálogo para editar
                 />
-
               ))
             )}
           </Box>
         </DndContext>
+
+        {/* Modal de agregar/editar nota */}
         <NotaDialog
-          open={dialogOpen}
-          onClose={handleCloseDialog}
-          onSave={agregarNota}
-          onDelete={eliminarNota}
-          nota={selectedNota}
-       />
+  open={dialogOpen}
+  onClose={handleCloseDialog}
+  onSave={agregarNota}
+  onDelete={(id: string) => {
+    const nota = notas.find(n => n.id === id);
+    if (nota) {
+      handleOpenConfirm(nota); // Solo abre el modal si la nota existe
+    }
+  }}// Vinculamos la eliminación a la apertura del modal de confirmación
+  nota={selectedNota}
+/>
+
+        {/* Modal de confirmación */}
+        <ConfirmDialog
+          open={confirmOpen}
+          title="Eliminar Nota"
+          content={`¿Estás seguro que deseas eliminar la nota "${notaToDelete?.title}"?`}
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+        />
       </Box>
     </React.Fragment>
   );
